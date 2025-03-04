@@ -91,19 +91,40 @@ class _MyHomePageState extends State<MyHomePage> {
                         itemCount: snapshot.data!.length,
                         itemBuilder: (context, index) {
                           final result = snapshot.data![index];
+                          final isDeviceConnected = controller
+                              .isDeviceConnected(result.device);
+
                           return Card(
                             margin: const EdgeInsets.symmetric(
                               horizontal: 8.0,
                               vertical: 4.0,
                             ),
                             child: ListTile(
-                              title: Text(
-                                result.device.platformName.isEmpty
-                                    ? 'Unknown Device'
-                                    : result.device.platformName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      result.device.platformName.isEmpty
+                                          ? 'Unknown Device'
+                                          : result.device.platformName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color:
+                                            isDeviceConnected
+                                                ? Colors.blue
+                                                : null,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isDeviceConnected)
+                                    const Text(
+                                      'Connected',
+                                      style: TextStyle(
+                                        color: Colors.blue,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                ],
                               ),
                               subtitle: Text(
                                 'ID: ${result.device.remoteId.str}',
@@ -120,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
 
-                // Single Scan Button
+                // Scan Button
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
@@ -128,15 +149,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       minimumSize: const Size(double.infinity, 50),
                     ),
                     onPressed:
-                        controller.isScanning || controller.isConnected
+                        controller.isScanning
                             ? null
                             : () => controller.scanDevices(),
                     child: Text(
-                      controller.isConnected
-                          ? "CONNECTED"
-                          : (controller.isScanning
-                              ? "SCANNING..."
-                              : "SCAN DEVICES"),
+                      controller.isScanning ? "SCANNING..." : "SCAN DEVICES",
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),

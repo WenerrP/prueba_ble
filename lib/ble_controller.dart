@@ -7,8 +7,9 @@ class BleController extends GetxController {
   Timer? _scanTimer;
   bool _isScanning = false;
   bool _isConnected = false;
+  BluetoothDevice? _connectedDevice;
   final List<ScanResult> _scanResults = [];
-  final int _scanInterval = 10; // seconds between scans
+  final int _scanInterval = 20; // seconds between scans
 
   // Getters
   bool get isScanning => _isScanning;
@@ -95,9 +96,7 @@ class BleController extends GetxController {
   }
 
   Future<void> scanDevices() async {
-    if (_isScanning ||
-        (_isConnected && (_scanTimer == null || !_scanTimer!.isActive)))
-      return;
+    if (_isScanning) return;
 
     try {
       _isScanning = true;
@@ -150,9 +149,13 @@ class BleController extends GetxController {
     }
   }
 
+  bool isDeviceConnected(BluetoothDevice device) {
+    return _connectedDevice?.remoteId == device.remoteId && _isConnected;
+  }
+
   Future<void> connectToDevice(BluetoothDevice device) async {
     try {
-      // Stop auto scanning
+      // Stop auto scanning when connecting
       stopAutoScan();
 
       await device.connect(
@@ -165,12 +168,15 @@ class BleController extends GetxController {
           case BluetoothConnectionState.connected:
             print('Device connected: ${device.platformName}');
             _isConnected = true;
+            _connectedDevice = device;
+            // Keep auto scan stopped when connected
             update();
             break;
           case BluetoothConnectionState.disconnected:
             print('Device disconnected: ${device.platformName}');
             _isConnected = false;
-            // Restart auto scanning when device disconnects
+            _connectedDevice = null;
+            // Restart auto scanning when disconnected
             startAutoScan();
             update();
             break;
@@ -185,8 +191,8 @@ class BleController extends GetxController {
     } catch (e) {
       print('Error connecting to device: $e');
       _isConnected = false;
-      // Restart auto scanning if connection fails
-      startAutoScan();
+      _connectedDevice = null;
+      startAutoScan(); // Restart auto scan if connection fails
       update();
     }
   }
