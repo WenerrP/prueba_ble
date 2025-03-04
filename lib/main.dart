@@ -47,6 +47,19 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text("BLE SCANNER"),
+        actions: [
+          // Scan Button as IconButton
+          GetBuilder<BleController>(
+            builder:
+                (controller) => IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed:
+                      controller.isScanning
+                          ? null
+                          : () => controller.scanDevices(),
+                ),
+          ),
+        ],
       ),
       body: GetBuilder<BleController>(
         // Wrap with GetBuilder for automatic updates
@@ -138,24 +151,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         },
                       );
                     },
-                  ),
-                ),
-
-                // Scan Button
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    onPressed:
-                        controller.isScanning
-                            ? null
-                            : () => controller.scanDevices(),
-                    child: Text(
-                      controller.isScanning ? "SCANNING..." : "SCAN DEVICES",
-                      style: const TextStyle(fontSize: 16),
-                    ),
                   ),
                 ),
               ],
