@@ -2,6 +2,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
+import '../screens/provision/widgets/auth_dialog.dart';
 
 class BleController extends GetxController {
   Timer? _scanTimer;
@@ -155,9 +157,32 @@ class BleController extends GetxController {
 
   Future<void> connectToDevice(BluetoothDevice device) async {
     try {
-      // Stop auto scanning when connecting
+      // Show authentication dialog
+      final credentials = await Get.dialog<Map<String, String>>(
+        AuthDialog(device: device),
+        barrierDismissible: false,
+      );
+
+      // If user cancelled, return
+      if (credentials == null) return;
+
+      // Verify credentials
+      if (credentials['username'] != 'wifiprov' ||
+          credentials['password'] != 'abcd1234') {
+        Get.snackbar(
+          'Error',
+          'Invalid credentials',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Stop auto scanning
       stopAutoScan();
 
+      // Connect to device
       await device.connect(
         timeout: const Duration(seconds: 15),
         autoConnect: false,
@@ -190,6 +215,13 @@ class BleController extends GetxController {
       });
     } catch (e) {
       print('Error connecting to device: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to connect to device: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       _isConnected = false;
       _connectedDevice = null;
       startAutoScan(); // Restart auto scan if connection fails

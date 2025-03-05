@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package esp_provisioning;
+
+// Main message wrapper
+message SecurityMessage {
+  enum MsgType {
+    TypeCmdGetStatus = 0;
+    TypeCmdSetConfig = 1;
+    TypeCmdApplyConfig = 2;
+    TypeRespGetStatus = 3;
+    TypeRespSetConfig = 4;
+    TypeRespApplyConfig = 5;
+  }
+  
+  MsgType msg = 1;
+  bytes payload = 2;
+}
+
+// Authentication payload
+message AuthPayload {
+  string username = 1;
+  string password = 2;
+}
